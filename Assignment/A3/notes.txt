@@ -1,0 +1,11 @@
+need to know SMILES for exam(basics)
+
+- indices: walk over molecule and get smiles
+-> custom ID: every molecule already has indices in rdkit 
+assign new indices 
+no chirality no stereochemistry
+- DFS on molelcular graph (atoms and bonds) not more
+- 1 to m create own indices
+visited as visited make list -> go direction of the lower indices
+smiles no unique
+IDs for 
