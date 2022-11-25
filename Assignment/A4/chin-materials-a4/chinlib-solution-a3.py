@@ -9,13 +9,56 @@ smiles = ""
 
 # Perform relaxation step to assign EC labels
 def morgan_relaxation(mol, debug=False):
-    pass # TODO
+    ec = {i:1 for i in range(mol.GetNumAtoms())}
+    new = {}
+    count = 1
 
+    while True:
+        for a in mol.GetAtoms():
+            new[a.GetIdk()] =0
+            for n in a.GetNeighbors():
+                new[a.GetIdx()] += ec[n.GetIdx()]
+        
+        if len(set(new.values())) > len(set(ec.values())):
+            ec = dict(new)
+        else:
+            break
+    for a in mol.GetAtoms():
+        a.SetIntProp("EC", ec[a.GetIdx()])
 
 # Derive canonical numbering based on final EC labelling
-def morgan_enumeration(mol, debug=False):
-    pass # TODO
+def morgan_enumeration(mol,ec, debug=False):
+    idx ={}
+    cand = prioritize(mol,-1,ec)
 
+    idd = cand[0]
+    mol.GetAtomWithIdx(idd).SetIntProp("CID",1)
+    idx[1] = idd
+    del ec[idd]
+
+    while len(ec):
+        sub = {}
+        for n in mol.GetAtomWithIdx(idd).GetNeighbors():
+            if n.GetIdx() in ec:
+                sub[n.GetIdx()] = ec[n.GetIdx()]
+                del ec[n.GetIdx()]
+        while len(sub):
+            cand = prioritize(mol,idx,sub)
+            for idd in cand:
+                mol.GetAtomWithIdx(idd).SetIntProp("CID",len(idd)+1)
+                idd[len(idd)+1] = idd
+                del sub[idd]
+        idx = idd[mol.GetAtomWithIdx(idd).GetIntProp("CID")+1]
+
+def prioritize(mol, ind, cand):
+    max = max(cand.values())
+    cand = [idx for idx in cand if cand[idx] ==max]
+    if len(cand) ==1:
+        return cand
+    
+    num = {}
+    for id in cand:
+        nums = mol.GetAtomWithIdx(ind).GetAtomicNum()
 
 # Assign a custom ID to the atoms in a given molecule
 def assign_custom_atom_id(mol, canonical):
